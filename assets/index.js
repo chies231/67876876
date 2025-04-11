@@ -2,42 +2,57 @@ let upload;
 let imageInput;
 let idOwnImage;
 
-document.addEventListener('DOMContentLoaded', () => {
-    upload = document.querySelector('.upload');
-    idOwnImage = document.querySelector('.id_own_image');
-    imageInput = document.createElement('input');
-    
-    imageInput.type = 'file';
-    imageInput.accept = 'image/.jpeg,image/.png,image/.gif';
-    imageInput.style.display = 'none';
-    document.body.appendChild(imageInput);
+var upload = document.querySelector(".upload");
 
-    upload.addEventListener('click', () => {
-        imageInput.value = '';
-        imageInput.click();
-        upload.classList.remove('error_shown');
-    });
+var imageInput = document.createElement("input");
+imageInput.type = "file";
+imageInput.accept = ".jpeg,.png,.gif";
 
-    imageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+document.querySelectorAll(".input_holder").forEach((element) => {
 
-        upload.classList.add('upload_loading');
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            localStorage.setItem('uploadedImage', e.target.result);
-            upload.querySelector('.upload_uploaded').src = e.target.result;
-            upload.classList.remove('upload_loading');
-            upload.classList.add('upload_loaded');
-        };
-        reader.onerror = () => {
-            upload.classList.remove('upload_loading');
-            showError('Błąd podczas odczytu pliku');
-        };
-        reader.readAsDataURL(file);
-    });
+    var input = element.querySelector(".input");
+    input.addEventListener('click', () => {
+        element.classList.remove("error_shown");
+    })
+
 });
+
+upload.addEventListener('click', () => {
+    imageInput.click();
+    upload.classList.remove("error_shown")
+});
+
+imageInput.addEventListener('change', (event) => {
+
+    upload.classList.remove("upload_loaded");
+    upload.classList.add("upload_loading");
+
+    upload.removeAttribute("selected")
+
+    var file = imageInput.files[0];
+    var data = new FormData();
+    data.append("image", file);
+
+    fetch('	https://api.imgur.com/3/image' ,{
+        method: 'POST',
+        headers: {
+            'Authorization': 'Client-ID 53c1ecfb80f39da'
+        },
+        body: data
+    })
+    .then(result => result.json())
+    .then(response => {
+        
+        var url = response.data.link;
+        upload.classList.remove("error_shown")
+        upload.setAttribute("selected", url);
+        upload.classList.add("upload_loaded");
+        upload.classList.remove("upload_loading");
+        upload.querySelector(".upload_uploaded").src = url;
+
+    })
+
+})
 
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
